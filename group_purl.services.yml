@@ -1,0 +1,7 @@
+services:
+  group_purl.context_provider:
+    class: Drupal\group_purl\Context\GroupPurlContext
+    arguments: ['@entity_type.manager']
+    tags:
+      - { name: context_provider }
+      - { name: event_subscriber }
