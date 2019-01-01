@@ -8,7 +8,11 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * @PurlMethod(
  *   id="group_prefix",
- *   title = @Translation("Group Content.")
+ *   title = @Translation("Group Content."),
+ *   stages={
+ *      Drupal\purl\Plugin\Purl\Method\MethodInterface::STAGE_PROCESS_OUTBOUND,
+ *      Drupal\purl\Plugin\Purl\Method\MethodInterface::STAGE_PRE_GENERATE
+ *   }
  * )
  */
 class GroupPrefixMethod extends PathPrefixMethod {
@@ -37,7 +41,7 @@ class GroupPrefixMethod extends PathPrefixMethod {
    */
   public function alterRequest(Request $request, $identifier) {
     // cannot use $request->uri as this sets it to the current server URI, making
-    // it too late to modifiy
+    // it too late to modify
     $uri = $request->server->get('REQUEST_URI');
     $newPath = substr($uri, strlen($identifier) + 1);
     $request->server->set('REQUEST_URI', $newPath);
