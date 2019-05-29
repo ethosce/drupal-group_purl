@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
  * @PurlMethod(
  *   id="group_prefix",
  *   title = @Translation("Group Content."),
- *   stages={
+ *   stages = {
  *      Drupal\purl\Plugin\Purl\Method\MethodInterface::STAGE_PROCESS_OUTBOUND,
  *      Drupal\purl\Plugin\Purl\Method\MethodInterface::STAGE_PRE_GENERATE
  *   }
@@ -18,10 +18,10 @@ use Symfony\Component\HttpFoundation\Request;
 class GroupPrefixMethod extends PathPrefixMethod {
 
   /**
-   *
+   * {@inheritdoc}
    */
   public function contains(Request $request, $modifier) {
-    $uri = $request->getRequestUri();
+    $uri = $request->getPathInfo();
     if ($uri === '/' . $modifier) {
       return FALSE;
     }
@@ -37,20 +37,24 @@ class GroupPrefixMethod extends PathPrefixMethod {
   }
 
   /**
-   *
+   * {@inheritdoc}
    */
   public function alterRequest(Request $request, $identifier) {
     // cannot use $request->uri as this sets it to the current server URI, making
     // it too late to modify
     $uri = $request->server->get('REQUEST_URI');
-    $newPath = substr($uri, strlen($identifier) + 1);
+    // If we try to get the base path from the Request argument, the modifier gets matched twice.
+    // getBasePath() indirectly populates the requestUri parameter, which needs to be null before we set the
+    // REQUEST_URI parameter.
+    $basePath = \Drupal::request()->getBasePath();
+    $newPath = str_replace($basePath.'/'.$identifier, $basePath, $uri);
     $request->server->set('REQUEST_URI', $newPath);
 
     return $request;
   }
 
   /**
-   *
+   * {@inheritdoc}
    */
   public function enterContext($modifier, $path, array &$options) {
     if (isset($options['purl_exit']) && $options['purl_exit']) {
@@ -60,7 +64,7 @@ class GroupPrefixMethod extends PathPrefixMethod {
   }
 
   /**
-   *
+   * {@inheritdoc}
    */
   public function exitContext($modifier, $path, array &$options) {
     if (!$this->checkPath($modifier, $path)) {
