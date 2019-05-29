@@ -45,6 +45,8 @@ class GroupPrefixMethod extends PathPrefixMethod {
     $uri = $request->server->get('REQUEST_URI');
     $newPath = substr($uri, strlen($identifier) + 1);
     $request->server->set('REQUEST_URI', $newPath);
+
+    return $request;
   }
 
   /**
