@@ -80,9 +80,6 @@ class GroupSubdomain extends MethodAbstract implements OutboundRouteAlteringInte
     }
     return strpos($uri, '/' . $modifier . '/') === 0;
   }
-  /**
-   *
-   */
   public function alterRequest(Request $request, $identifier) {
     // cannot use $request->uri as this sets it to the current server URI, making
     // it too late to modify
@@ -99,9 +96,6 @@ class GroupSubdomain extends MethodAbstract implements OutboundRouteAlteringInte
     return FALSE;
   }
 
-  /**
-   *
-   */
   public function enterContext($modifier, $path, array &$options) {
     // first fix up path...
     if (isset($options['host'])) {
@@ -124,9 +118,6 @@ class GroupSubdomain extends MethodAbstract implements OutboundRouteAlteringInte
     return $path;
   }
 
-  /**
-   *
-   */
   public function exitContext($modifier, $path, array &$options) {
     if (!$this->checkPath($modifier, $path)) {
       return NULL;

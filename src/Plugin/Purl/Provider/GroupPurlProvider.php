@@ -30,7 +30,7 @@ class GroupPurlProvider extends ProviderAbstract implements ProviderInterface, C
     $gids = $query->execute();
 
     /** @var \Drupal\Core\Path\AliasManager $alias_manager */
-    $alias_manager = $this->container->get('path.alias_manager');
+    $alias_manager = $this->container->get('path_alias.manager');
 
     $modifiers = [];
 

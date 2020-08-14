@@ -29,12 +29,14 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManager;
+
   /**
    * Drupal\Core\Routing\CurrentRouteMatch definition.
    *
    * @var \Drupal\Core\Routing\CurrentRouteMatch
    */
   protected $currentRouteMatch;
+
   /**
    * Drupal\purl\MatchedModifiers definition.
    *
@@ -77,25 +79,32 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
       return;
     }
     $url = FALSE;
-    if ($route_name == 'entity.node.canonical') {
-      if ($contents = GroupContent::loadByEntity($this->currentRouteMatch->getParameter('node'))) {
+    if (preg_match('/entity\.(.*)\.canonical/', $route_name, $match) && $match[1] != 'group') {
+      if ($contents = GroupContent::loadByEntity($this->currentRouteMatch->getParameter($match[1]))) {
         $group_content = reset($contents);
         $modifier = substr($group_content->getGroup()->path->alias, 1);
+        if (strpos($modifier, '.') !== FALSE) {
+          // domain, has a dot
+          $host = $modifier;
+        }
+        else {
+          // path
+          $host = Settings::get('purl_base_domain') . '/' . $modifier;
+        }
         if (empty($matched) || ($matched[0]->getModifier() != $modifier)) {
           // redirect into group
           $url = Url::fromRoute($route_name, $this->currentRouteMatch->getRawParameters()->all(), [
-            'host' => $modifier . '.' . Settings::get('purl_base_domain'),
+              'host' => $host,
+              'absolute' => TRUE,
+              'purl_exit' => TRUE,
+          ]);
+        }
+      }
+      elseif (!empty($matched)) {
+        $url = Url::fromRoute($route_name, $this->currentRouteMatch->getRawParameters()->all(), [
+            'host' => Settings::get('purl_base_domain'),
             'absolute' => TRUE,
             'purl_exit' => TRUE,
-          ]);
-
-        }
-
-      } elseif (!empty($matched)) {
-        $url = Url::fromRoute($route_name, $this->currentRouteMatch->getRawParameters()->all(), [
-          'host' => Settings::get('purl_base_domain'),
-          'absolute' => TRUE,
-          'purl_exit' => TRUE,
         ]);
       }
     }
@@ -103,14 +112,24 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
       /** @var \Drupal\group\Entity\Group $group */
       $group = $this->currentRouteMatch->getParameter('group');
       $modifier = substr($group->path->alias, 1);
+
+      if (strpos($modifier, '.') !== FALSE) {
+        // domain, has a dot
+        $host = $modifier;
+      }
+      else {
+        // path
+        $host = Settings::get('purl_base_domain') . '/' . $modifier;
+      }
+
       // if not matched...
       if (empty($matched)) {
 
         $url = Url::fromRoute($route_name, $this->currentRouteMatch->getRawParameters()
-          ->all(), [
-          'host' => $modifier . '.' . Settings::get('purl_base_domain'),
-          'absolute' => TRUE,
-          'purl_exit' => TRUE,
+              ->all(), [
+            'host' => $host,
+            'absolute' => TRUE,
+            'purl_exit' => TRUE,
         ]);
       }
     }
@@ -123,8 +142,7 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
         $eventDispatcher->dispatch(PurlEvents::EXITED_CONTEXT, $new_event);
         $event->setResponse($new_event->getResponse());
         return;
-      }
-      catch (RedirectLoopException $e) {
+      } catch (RedirectLoopException $e) {
         \Drupal::logger('redirect')->warning($e->getMessage());
         $response = new Response();
         $response->setStatusCode(503);

@@ -70,7 +70,7 @@ class GroupPurlContext implements ContextProviderInterface, EventSubscriberInter
    * 3 different ways to get group context:
    * 1. Purl matched -- we are in a subdomain or subdirectory
    * 2. entity.group route
-   * 3. entity.node.canonical route, with a purl_context set
+   * 3. entity.*.canonical route, with a purl_context set
    */
   public function getRuntimeContexts(array $unqualified_context_ids) {
     // Create an optional context definition for group entities.
@@ -78,7 +78,9 @@ class GroupPurlContext implements ContextProviderInterface, EventSubscriberInter
     $context_definition->setRequired(FALSE);
     // Cache this context on the route.
     $cacheability = new CacheableMetadata();
-    $cacheability->setCacheContexts(['group']);
+    // no longer available in group 1.0
+    //$cacheability->setCacheContexts(['group']);
+    $cacheability->setCacheMaxAge(0);
 
     // Create a context from the definition and retrieved or created group.
     $context = new Context($context_definition, $this->getGroupFromRoute());
@@ -87,9 +89,6 @@ class GroupPurlContext implements ContextProviderInterface, EventSubscriberInter
     return ['group' => $context];
   }
 
-  /**
-   *
-   */
   public function getGroupFromRoute() {
     if ($this->modifierMatched === NULL) {
       return;

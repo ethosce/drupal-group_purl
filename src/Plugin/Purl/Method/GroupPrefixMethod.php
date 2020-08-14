@@ -47,7 +47,12 @@ class GroupPrefixMethod extends PathPrefixMethod {
     // getBasePath() indirectly populates the requestUri parameter, which needs to be null before we set the
     // REQUEST_URI parameter.
     $basePath = \Drupal::request()->getBasePath();
-    $newPath = str_replace($basePath.'/'.$identifier, $basePath, $uri);
+    $newPath = substr_replace($uri, $basePath, 0, (\strlen($identifier) + 1));
+    if ($newPath == '/') {
+      // Request for the group frontpage.
+      // Note: we can change $newPath if we wanted to set a custom group homepage.
+      $newPath = '/' . $identifier;
+    }
     $request->server->set('REQUEST_URI', $newPath);
 
     return $request;
@@ -72,6 +77,13 @@ class GroupPrefixMethod extends PathPrefixMethod {
     }
 
     return substr($path, 0, strlen($modifier) + 1);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function preGenerateEnter() {
+
   }
 
 }
