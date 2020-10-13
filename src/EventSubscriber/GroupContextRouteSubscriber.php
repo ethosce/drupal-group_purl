@@ -2,6 +2,7 @@
 
 namespace Drupal\group_purl\EventSubscriber;
 
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Routing\TrustedRedirectResponse;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\Url;
@@ -81,7 +82,7 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
     $url = FALSE;
     if (preg_match('/entity\.(.*)\.canonical/', $route_name, $match) && $match[1] != 'group') {
       $entity = $this->currentRouteMatch->getParameter($match[1]);
-      if (is_a($entity, \Drupal\Core\Entity\ContentEntityInterface::class) && $contents = GroupContent::loadByEntity($this->currentRouteMatch->getParameter($match[1]))) {
+      if (is_a($entity, ContentEntityInterface::class) && $contents = GroupContent::loadByEntity($this->currentRouteMatch->getParameter($match[1]))) {
         $group_content = reset($contents);
         $modifier = substr($group_content->getGroup()->path->alias, 1);
         if (strpos($modifier, '.') !== FALSE) {
