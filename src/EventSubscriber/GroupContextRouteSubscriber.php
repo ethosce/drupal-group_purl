@@ -80,7 +80,8 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
     }
     $url = FALSE;
     if (preg_match('/entity\.(.*)\.canonical/', $route_name, $match) && $match[1] != 'group') {
-      if ($contents = GroupContent::loadByEntity($this->currentRouteMatch->getParameter($match[1]))) {
+      $entity = $this->currentRouteMatch->getParameter($match[1]);
+      if (is_a($entity, \Drupal\Core\Entity\ContentEntityInterface::class) && $contents = GroupContent::loadByEntity($this->currentRouteMatch->getParameter($match[1]))) {
         $group_content = reset($contents);
         $modifier = substr($group_content->getGroup()->path->alias, 1);
         if (strpos($modifier, '.') !== FALSE) {
