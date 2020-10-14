@@ -33,7 +33,6 @@ class GroupPrefixMethod extends PathPrefixMethod {
       return FALSE;
     }
     return strpos($uri, '/' . $modifier . '/') === 0;
-
   }
 
   /**
@@ -47,7 +46,7 @@ class GroupPrefixMethod extends PathPrefixMethod {
     // getBasePath() indirectly populates the requestUri parameter, which needs to be null before we set the
     // REQUEST_URI parameter.
     $basePath = \Drupal::request()->getBasePath();
-    $newPath = substr_replace($uri, $basePath, 0, (\strlen($identifier) + 1));
+    $newPath = substr_replace($uri, $basePath, 0, strlen($identifier) + 1);
     if ($newPath == '/') {
       // Request for the group frontpage.
       // Note: we can change $newPath if we wanted to set a custom group homepage.
@@ -65,7 +64,7 @@ class GroupPrefixMethod extends PathPrefixMethod {
     if (isset($options['purl_exit']) && $options['purl_exit']) {
       return $path;
     }
-    return '/' . $modifier . $path;
+    return '/' . $modifier . '/' . $path;
   }
 
   /**
@@ -76,7 +75,7 @@ class GroupPrefixMethod extends PathPrefixMethod {
       return NULL;
     }
 
-    return substr($path, 0, strlen($modifier) + 1);
+    return substr($path, 0, strlen($modifier));
   }
 
   /**

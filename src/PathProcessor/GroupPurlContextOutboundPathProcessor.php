@@ -48,7 +48,7 @@ class GroupPurlContextOutboundPathProcessor implements OutboundPathProcessorInte
     if (isset($options['purl_context']) && isset($options['purl_context']['modifier'])) {
       $modifier = $options['purl_context']['modifier'];
       if (strpos($path, '/' . $modifier) === 0) {
-        $out = substr($path, strlen($modifier) + 1);
+        $out = substr($path, strlen($modifier));
         return strlen($out) ? $out : '/';
       }
     }

@@ -23,23 +23,12 @@ class GroupPurlProvider extends ProviderAbstract implements ProviderInterface, C
    * @inheritDoc
    */
   public function getModifierData() {
-    /** @var \Drupal\Core\Entity\EntityStorageInterface $storage */
-    $storage = $this->container->get('entity_type.manager')->getStorage('group');
-    /** @var \Drupal\Core\Entity\Query\Sql\Query $query */
-    $query = $storage->getQuery();
-    $gids = $query->execute();
-
-    /** @var \Drupal\Core\Path\AliasManager $alias_manager */
-    $alias_manager = $this->container->get('path_alias.manager');
-
     $modifiers = [];
+    $groups = \Drupal\group\Entity\Group::loadMultiple();
 
-    foreach ($gids as $gid) {
-      $path = $alias_manager->getAliasByPath('/group/' . $gid);
-      $path = substr($path, 1);
-      $modifiers[$path] = $gid;
-
-    };
+    foreach ($groups as $group) {
+      $modifiers[$group->purl->value] = $group->id();
+    }
 
     return $modifiers;
   }

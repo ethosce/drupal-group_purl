@@ -84,7 +84,7 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
       $entity = $this->currentRouteMatch->getParameter($match[1]);
       if (is_a($entity, ContentEntityInterface::class) && $contents = GroupContent::loadByEntity($this->currentRouteMatch->getParameter($match[1]))) {
         $group_content = reset($contents);
-        $modifier = substr($group_content->getGroup()->path->alias, 1);
+        $modifier = $group_content->getGroup()->purl->value;
         if (strpos($modifier, '.') !== FALSE) {
           // domain, has a dot
           $host = $modifier;
@@ -113,7 +113,7 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
     if ($route_name == 'entity.group.canonical') {
       /** @var \Drupal\group\Entity\Group $group */
       $group = $this->currentRouteMatch->getParameter('group');
-      $modifier = substr($group->path->alias, 1);
+      $modifier = $group->purl->value;
 
       if (strpos($modifier, '.') !== FALSE) {
         // domain, has a dot

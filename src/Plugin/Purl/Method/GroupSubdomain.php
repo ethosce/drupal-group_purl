@@ -52,7 +52,7 @@ class GroupSubdomain extends MethodAbstract implements OutboundRouteAlteringInte
 
   protected function hostContainsModifier($modifier, $host)
   {
-    return strpos($host, $modifier . '.') === 0;
+    return $modifier == $host;
   }
 
   protected function getBaseHost()
@@ -89,7 +89,12 @@ class GroupSubdomain extends MethodAbstract implements OutboundRouteAlteringInte
       return FALSE;
     };
     if ($uri == '/') {
-      $newPath = '/' . $identifier;
+
+      $gids = \Drupal::entityQuery('group')
+        ->condition('purl', $identifier)
+        ->execute();
+
+      $newPath = '/group/' . reset($gids);
       $request->server->set('REQUEST_URI', $newPath);
       return TRUE;
     }
@@ -123,7 +128,7 @@ class GroupSubdomain extends MethodAbstract implements OutboundRouteAlteringInte
       return NULL;
     }
 
-    return substr($path, 0, strlen($modifier) + 1);
+    return substr($path, 0, strlen($modifier));
   }
 
 }

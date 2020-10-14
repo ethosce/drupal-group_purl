@@ -1,34 +1,52 @@
 <?php
 
-use \Drupal\Core\Site\Settings;
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Site\Settings;
+use Drupal\Core\Url;
 
 /**
  * Implements hook_link_alter().
  */
 function group_purl_link_alter(&$variables) {
-  /** @var \Drupal\Core\Url $url */
+  /** @var Url $url */
   $options = &$variables['options'];
   if (isset($options['purl_context']) && !$options['absolute']) {
 
     $modifier = $options['purl_context']['modifier'];
     if (strpos($modifier, '.') !== FALSE) {
-        // domain, has a dot
-        $host = $modifier;
-      }
-      else {
-        // path
-        $host = Settings::get('purl_base_domain') . '/' . $modifier;
-      }
+      // domain, has a dot
+      $host = $modifier;
+    }
+    else {
+      // path
+      $host = Settings::get('purl_base_domain') . '/' . $modifier;
+    }
 
-    $linkhost = isset($options['purl_context']['modifier'])
-      ? $host
-      : Settings::get('purl_base_domain');
-    $host = \Drupal::service('router.request_context')->getHost();
+    $linkhost = isset($options['purl_context']['modifier']) ? $host : Settings::get('purl_base_domain');
+    $host = Drupal::service('router.request_context')->getHost();
     if ($linkhost != $host) {
       $options['host'] = $linkhost;
       $options['absolute'] = TRUE;
     }
-
   }
-
 }
+
+/**
+ * Implements hook_base_field_info_alter().
+ *
+ * Add a prefix field to groups.
+ */
+function group_purl_entity_base_field_info(EntityTypeInterface $entity_type) {
+  $fields = [];
+  if ($entity_type->id() == 'group') {
+    $fields['purl'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Group prefix'))
+      ->setDescription(t('Provide a path prefix or domain that will be prefixed before all group content.'))
+      ->setRequired(TRUE)
+      ->setDisplayConfigurable('form', TRUE);
+  }
+  return $fields;
+}
+
