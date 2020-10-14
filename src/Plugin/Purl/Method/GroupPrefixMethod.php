@@ -11,7 +11,6 @@ use Symfony\Component\HttpFoundation\Request;
  *   title = @Translation("Group Content."),
  *   stages = {
  *      Drupal\purl\Plugin\Purl\Method\MethodInterface::STAGE_PROCESS_OUTBOUND,
- *      Drupal\purl\Plugin\Purl\Method\MethodInterface::STAGE_PRE_GENERATE
  *   }
  * )
  */
@@ -22,17 +21,18 @@ class GroupPrefixMethod extends PathPrefixMethod {
    */
   public function contains(Request $request, $modifier) {
     $uri = $request->getPathInfo();
-    if ($uri === '/' . $modifier) {
-      return FALSE;
-    }
-    return $this->checkPath($modifier, $uri);
-  }
 
-  protected function checkPath($modifier, $uri) {
     if ($uri === '/' . $modifier) {
-      return FALSE;
+      // The path is exactly the modifier (like a homepage).
+      return TRUE;
     }
-    return strpos($uri, '/' . $modifier . '/') === 0;
+
+    if (strpos($uri, '/' . $modifier . '/') === 0) {
+      // The URL begins with the modifier and we are requesting group content.
+      return TRUE;
+    }
+
+    return FALSE;
   }
 
   /**
@@ -47,10 +47,14 @@ class GroupPrefixMethod extends PathPrefixMethod {
     // REQUEST_URI parameter.
     $basePath = \Drupal::request()->getBasePath();
     $newPath = substr_replace($uri, $basePath, 0, strlen($identifier) + 1);
-    if ($newPath == '/') {
+    if ($newPath == '/' || $newPath == '') {
+      $gids = \Drupal::entityQuery('group')
+        ->condition('purl', $identifier)
+        ->execute();
+
       // Request for the group frontpage.
       // Note: we can change $newPath if we wanted to set a custom group homepage.
-      $newPath = '/' . $identifier;
+      $newPath = '/group/' . reset($gids);
     }
     $request->server->set('REQUEST_URI', $newPath);
 
@@ -76,13 +80,6 @@ class GroupPrefixMethod extends PathPrefixMethod {
     }
 
     return substr($path, 0, strlen($modifier));
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function preGenerateEnter() {
-
   }
 
 }

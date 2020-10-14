@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: john
@@ -19,7 +20,6 @@ use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 
-
 /**
  * @PurlMethod(
  *   id="group_subdomain",
@@ -29,12 +29,11 @@ use Symfony\Component\Routing\Route;
  *   }
  * )
  */
-class GroupSubdomain extends MethodAbstract implements OutboundRouteAlteringInterface, ContainerAwareInterface, RequestAlteringInterface {
+class GroupSubdomain extends MethodAbstract implements  ContainerAwareInterface, RequestAlteringInterface {
 
   use ContainerAwareTrait;
 
-  public function contains(Request $request, $modifier)
-  {
+  public function contains(Request $request, $modifier) {
     $baseHost = $this->getBaseHost();
 
     if (!$baseHost) {
@@ -50,28 +49,17 @@ class GroupSubdomain extends MethodAbstract implements OutboundRouteAlteringInte
     return $this->hostContainsModifier($modifier, $request->getHost());
   }
 
-  protected function hostContainsModifier($modifier, $host)
-  {
+  protected function hostContainsModifier($modifier, $host) {
     return $modifier == $host;
   }
 
-  protected function getBaseHost()
-  {
+  protected function getBaseHost() {
     // Retrieve this from request context.
     return Settings::get('purl_base_domain');
   }
 
-  protected function getRequestContext()
-  {
+  protected function getRequestContext() {
     return $this->container->get('router.request_context');
-  }
-
-
-  public function alterOutboundRoute($routeName, $modifier, Route $route, array &$parameters, BubbleableMetadata $metadata = NULL) {
-    // TODO: Implement alterOutboundRoute() method.
-    if ($modifier) {
-
-    }
   }
 
   public function checkPath($modifier, $uri) {
@@ -80,6 +68,7 @@ class GroupSubdomain extends MethodAbstract implements OutboundRouteAlteringInte
     }
     return strpos($uri, '/' . $modifier . '/') === 0;
   }
+
   public function alterRequest(Request $request, $identifier) {
     // cannot use $request->uri as this sets it to the current server URI, making
     // it too late to modify
@@ -105,7 +94,8 @@ class GroupSubdomain extends MethodAbstract implements OutboundRouteAlteringInte
     // first fix up path...
     if (isset($options['host'])) {
       $host = $options['host'];
-    } else {
+    }
+    else {
       $host = $this->getRequestContext()->getHost();
     }
     // Next, bail under certain circumstances
