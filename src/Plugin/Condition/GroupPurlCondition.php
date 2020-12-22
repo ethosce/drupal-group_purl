@@ -4,10 +4,11 @@ namespace Drupal\group_purl\Plugin\Condition;
 
 use Drupal\Core\Condition\ConditionPluginBase;
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\Query\Sql\Query;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\Core\Plugin\Context\ContextDefinition;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use function count;
 
 /**
 * Provides a 'Group purl condition' condition to enable a condition based in module selected status.
@@ -24,7 +25,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class GroupPurlCondition extends ConditionPluginBase implements ContainerFactoryPluginInterface {
 
   /**
-   * @var \Drupal\Core\Entity\EntityStorageInterface
+   * @var EntityStorageInterface
    */
   protected $entityStorage;
 /**
@@ -63,7 +64,7 @@ public static function create(ContainerInterface $container, array $configuratio
    */
  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
    $options = [];
-   /** @var \Drupal\Core\Entity\Query\Sql\Query $query */
+   /** @var Query $query */
    $groups = $this->entityStorage->loadMultiple();
    foreach($groups as $group) {
        $options[$group->id()] = $group->label();

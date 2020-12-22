@@ -9,16 +9,13 @@
 
 namespace Drupal\group_purl\Plugin\Purl\Method;
 
-use Drupal\Core\Render\BubbleableMetadata;
+use Drupal;
 use Drupal\Core\Site\Settings;
 use Drupal\purl\Plugin\Purl\Method\MethodAbstract;
-use Drupal\purl\Plugin\Purl\Method\OutboundRouteAlteringInterface;
 use Drupal\purl\Plugin\Purl\Method\RequestAlteringInterface;
-use Drupal\purl\Plugin\Purl\Method\SubdomainMethod;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Route;
 
 /**
  * @PurlMethod(
@@ -79,7 +76,7 @@ class GroupSubdomain extends MethodAbstract implements  ContainerAwareInterface,
     };
     if ($uri == '/') {
 
-      $gids = \Drupal::entityQuery('group')
+      $gids = Drupal::entityQuery('group')
         ->condition('purl', $identifier)
         ->execute();
 

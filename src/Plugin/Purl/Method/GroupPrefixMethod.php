@@ -2,6 +2,7 @@
 
 namespace Drupal\group_purl\Plugin\Purl\Method;
 
+use Drupal;
 use Drupal\purl\Plugin\Purl\Method\PathPrefixMethod;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -45,10 +46,10 @@ class GroupPrefixMethod extends PathPrefixMethod {
     // If we try to get the base path from the Request argument, the modifier gets matched twice.
     // getBasePath() indirectly populates the requestUri parameter, which needs to be null before we set the
     // REQUEST_URI parameter.
-    $basePath = \Drupal::request()->getBasePath();
+    $basePath = Drupal::request()->getBasePath();
     $newPath = substr_replace($uri, $basePath, 0, strlen($identifier) + 1);
     if ($newPath == '/' || $newPath == '') {
-      $gids = \Drupal::entityQuery('group')
+      $gids = Drupal::entityQuery('group')
         ->condition('purl', $identifier)
         ->execute();
 
@@ -68,7 +69,7 @@ class GroupPrefixMethod extends PathPrefixMethod {
     if (isset($options['purl_exit']) && $options['purl_exit']) {
       return $path;
     }
-    return '/' . $modifier . '/' . $path;
+    return '/' . $modifier . $path;
   }
 
   /**

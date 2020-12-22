@@ -2,20 +2,22 @@
 
 namespace Drupal\group_purl\EventSubscriber;
 
+use Drupal;
 use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\Entity;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\Core\Routing\TrustedRedirectResponse;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\Url;
+use Drupal\group\Entity\Group;
 use Drupal\group\Entity\GroupContent;
 use Drupal\purl\Event\ExitedContextEvent;
+use Drupal\purl\MatchedModifiers;
 use Drupal\purl\PurlEvents;
 use Drupal\redirect\Exception\RedirectLoopException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\EventDispatcher\Event;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Routing\CurrentRouteMatch;
-use Drupal\purl\MatchedModifiers;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
@@ -27,21 +29,21 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
   /**
    * Drupal\Core\Entity\EntityTypeManagerInterface definition.
    *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   * @var EntityTypeManagerInterface
    */
   protected $entityTypeManager;
 
   /**
    * Drupal\Core\Routing\CurrentRouteMatch definition.
    *
-   * @var \Drupal\Core\Routing\CurrentRouteMatch
+   * @var CurrentRouteMatch
    */
   protected $currentRouteMatch;
 
   /**
    * Drupal\purl\MatchedModifiers definition.
    *
-   * @var \Drupal\purl\MatchedModifiers
+   * @var MatchedModifiers
    */
   protected $purlMatchedModifiers;
 
@@ -81,8 +83,17 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
     }
     $url = FALSE;
     if (preg_match('/entity\.(.*)\.canonical/', $route_name, $match) && $match[1] != 'group') {
+      /* @var $entity Entity */
       $entity = $this->currentRouteMatch->getParameter($match[1]);
-      if (is_a($entity, ContentEntityInterface::class) && $contents = GroupContent::loadByEntity($this->currentRouteMatch->getParameter($match[1]))) {
+
+      /* @todo make this configurable, we probably don't want user purls due to
+       * cardinality, but maybe some do
+       */
+      if ($entity->getEntityTypeId() == 'user') {
+        return;
+      }
+
+      if ($entity instanceof ContentEntityInterface && $contents = GroupContent::loadByEntity($this->currentRouteMatch->getParameter($match[1]))) {
         $group_content = reset($contents);
         $modifier = $group_content->getGroup()->purl->value;
         if (strpos($modifier, '.') !== FALSE) {
@@ -111,7 +122,7 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
       }
     }
     if ($route_name == 'entity.group.canonical') {
-      /** @var \Drupal\group\Entity\Group $group */
+      /** @var Group $group */
       $group = $this->currentRouteMatch->getParameter('group');
       $modifier = $group->purl->value;
 
@@ -145,7 +156,7 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
         $event->setResponse($new_event->getResponse());
         return;
       } catch (RedirectLoopException $e) {
-        \Drupal::logger('redirect')->warning($e->getMessage());
+        Drupal::logger('redirect')->warning($e->getMessage());
         $response = new Response();
         $response->setStatusCode(503);
         $response->setContent('Service unavailable');

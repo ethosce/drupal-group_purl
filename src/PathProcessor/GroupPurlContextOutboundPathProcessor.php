@@ -4,8 +4,8 @@ namespace Drupal\group_purl\PathProcessor;
 
 use Drupal\Core\PathProcessor\OutboundPathProcessorInterface;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\purl\MatchedModifiers;
 use Drupal\purl\ContextHelper;
+use Drupal\purl\MatchedModifiers;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -16,13 +16,13 @@ class GroupPurlContextOutboundPathProcessor implements OutboundPathProcessorInte
   /**
    * Drupal\purl\MatchedModifiers definition.
    *
-   * @var \Drupal\purl\MatchedModifiers
+   * @var MatchedModifiers
    */
   protected $purlMatchedModifiers;
   /**
    * Drupal\purl\ContextHelper definition.
    *
-   * @var \Drupal\purl\ContextHelper
+   * @var ContextHelper
    */
   protected $purlContextHelper;
   /**
@@ -36,8 +36,8 @@ class GroupPurlContextOutboundPathProcessor implements OutboundPathProcessorInte
   /**
    * @param string $path
    * @param array $options
-   * @param \Symfony\Component\HttpFoundation\Request|NULL $request
-   * @param \Drupal\Core\Render\BubbleableMetadata|NULL $bubbleable_metadata
+   * @param Request|NULL $request
+   * @param BubbleableMetadata|NULL $bubbleable_metadata
    *
    * @return string
    *

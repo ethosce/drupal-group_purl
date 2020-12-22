@@ -3,9 +3,9 @@
 namespace Drupal\group_purl\Context;
 
 use Drupal\Core\Cache\CacheableMetadata;
+use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\Context\Context;
-use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Plugin\Context\ContextProviderInterface;
 use Drupal\Core\Plugin\Context\EntityContext;
 use Drupal\Core\Plugin\Context\EntityContextDefinition;
@@ -23,12 +23,12 @@ class GroupPurlContext implements ContextProviderInterface, EventSubscriberInter
   /**
    * Drupal\Core\Entity\EntityTypeManager definition.
    *
-   * @var \Drupal\Core\Entity\EntityTypeManager
+   * @var EntityTypeManager
    */
   protected $entityTypeManager;
 
   /**
-   * @var  \Drupal\purl\Event\ModifierMatchedEvent*/
+   * @var  ModifierMatchedEvent*/
   protected $modifierMatched;
 
   protected $contexts;
@@ -52,7 +52,7 @@ class GroupPurlContext implements ContextProviderInterface, EventSubscriberInter
    * This method is called whenever the purl.modifier_matched event is
    * dispatched.
    *
-   * @param \Drupal\purl\Event\ModifierMatchedEvent $event
+   * @param ModifierMatchedEvent $event
    */
   public function onModifierMatched(ModifierMatchedEvent $event) {
     //if (!in_array($event->getProvider(), ['group_purl_provider', 'group_purl_subdomain'])) {
