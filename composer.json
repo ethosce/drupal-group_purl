@@ -1,5 +1,5 @@
 {
-  "name": "drupal/group_purl",
+  "name": "ethosce/group_purl",
   "type": "drupal-module",
   "description": "Purl provider for Group",
   "keywords": ["Drupal"],
