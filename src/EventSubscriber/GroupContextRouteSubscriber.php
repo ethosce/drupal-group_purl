@@ -2,24 +2,22 @@
 
 namespace Drupal\group_purl\EventSubscriber;
 
-use Drupal;
-use Drupal\Core\Entity\ContentEntityInterface;
-use Drupal\Core\Entity\Entity;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\Core\Routing\TrustedRedirectResponse;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\Url;
-use Drupal\group\Entity\Group;
 use Drupal\group\Entity\GroupContent;
 use Drupal\purl\Event\ExitedContextEvent;
-use Drupal\purl\MatchedModifiers;
 use Drupal\purl\PurlEvents;
 use Drupal\redirect\Exception\RedirectLoopException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\EventDispatcher\Event;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Routing\CurrentRouteMatch;
+use Drupal\purl\MatchedModifiers;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Drupal\Core\Routing\NullRouteMatch;
 
 /**
  * Class GroupContextRouteSubscriber.
@@ -29,21 +27,19 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
   /**
    * Drupal\Core\Entity\EntityTypeManagerInterface definition.
    *
-   * @var EntityTypeManagerInterface
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManager;
-
   /**
    * Drupal\Core\Routing\CurrentRouteMatch definition.
    *
-   * @var CurrentRouteMatch
+   * @var \Drupal\Core\Routing\CurrentRouteMatch
    */
   protected $currentRouteMatch;
-
   /**
    * Drupal\purl\MatchedModifiers definition.
    *
-   * @var MatchedModifiers
+   * @var \Drupal\purl\MatchedModifiers
    */
   protected $purlMatchedModifiers;
 
@@ -70,82 +66,97 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
    * dispatched.
    *
    * @param GetResponseEvent $event
+   * @param $eventName
+   * @param EventDispatcherInterface $eventDispatcher
    */
   public function checkGroupContext(GetResponseEvent $event, $eventName, EventDispatcherInterface $eventDispatcher) {
-    $route_options = $this->currentRouteMatch->getRouteObject()->getOptions();
-    $isAdminRoute = array_key_exists('_admin_route', $route_options);
-    $route = $this->currentRouteMatch->getRouteObject();
-    $route_name = $this->currentRouteMatch->getRouteName();
-    $matched = $this->purlMatchedModifiers->getMatched();
-
-    if ($isAdminRoute) {
-      return;
+    $master_route_match = $this->currentRouteMatch->getMasterRouteMatch();
+    if (!$master_route_match instanceof NullRouteMatch) {
+      $route_options = $master_route_match->getRouteObject()->getOptions();
     }
+    else {
+      $route_options = $this->currentRouteMatch->getRouteObject()->getOptions();
+    }
+    $isAdminRoute = array_key_exists('_admin_route', $route_options);
+    if (!$master_route_match instanceof NullRouteMatch) {
+      $route_name = $master_route_match->getRouteName();
+    }
+    else {
+      $route_name = $this->currentRouteMatch->getRouteName();
+    }
+    $matched = $this->purlMatchedModifiers->getMatched();
     $url = FALSE;
-    if (preg_match('/entity\.(.*)\.canonical/', $route_name, $match) && $match[1] != 'group') {
-      /* @var $entity Entity */
-      $entity = $this->currentRouteMatch->getParameter($match[1]);
+    $multiple = count($matched) > 1;
 
-      /* @todo make this configurable, we probably don't want user purls due to
-       * cardinality, but maybe some do
-       */
-      if ($entity->getEntityTypeId() == 'user') {
+    if (empty($matched)) {
+      if ($route_name == 'entity.node.canonical' || $route_name == 'entity.node.edit_form' || $route_name == 'entity.node.add') {
+        if ($contents = GroupContent::loadByEntity($this->currentRouteMatch->getParameter('node'))) {
+          $group_content = reset($contents);
+          $modifier = substr($group_content->getGroup()->path->alias, 1);
+          $url = Url::fromRoute($route_name, $this->currentRouteMatch->getRawParameters()
+            ->all(), [
+            'prefix' => $modifier . '/',
+          ]);
+
+        }
+      }
+      elseif ($route_name == 'entity.group.canonical') {
+
+      }
+      elseif ($isAdminRoute) {
         return;
       }
-
-      if ($entity instanceof ContentEntityInterface && $contents = GroupContent::loadByEntity($this->currentRouteMatch->getParameter($match[1]))) {
-        $group_content = reset($contents);
-        $modifier = $group_content->getGroup()->purl->value;
-        if (strpos($modifier, '.') !== FALSE) {
-          // domain, has a dot
-          $host = $modifier;
+    }
+    else {
+      if ($route_name == 'entity.node.canonical' || $route_name == 'entity.node.edit_form' || $route_name == 'entity.node.add') {
+        if ($contents = GroupContent::loadByEntity($this->currentRouteMatch->getParameter('node'))) {
+          $group_content = reset($contents);
+          $modifier = substr($group_content->getGroup()->path->alias, 1);
+          if ($multiple || $modifier != $matched[0]->getModifier()) {
+            $url = Url::fromRoute($route_name, $this->currentRouteMatch->getRawParameters()
+              ->all(), [
+                'prefix' => $modifier . '/',
+                'purl_exit' => TRUE,
+              ]
+            );
+          }
+          // else no redirect needed, success.
         }
         else {
-          // path
-          $host = Settings::get('purl_base_domain') . '/' . $modifier;
-        }
-        if (empty($matched) || ($matched[0]->getModifier() != $modifier)) {
-          // redirect into group
+          // this node is not in a group.
           $url = Url::fromRoute($route_name, $this->currentRouteMatch->getRawParameters()->all(), [
-              'host' => $host,
-              'absolute' => TRUE,
-              'purl_exit' => TRUE,
+            'purl_exit' => TRUE,
           ]);
         }
       }
-      elseif (!empty($matched)) {
-        $url = Url::fromRoute($route_name, $this->currentRouteMatch->getRawParameters()->all(), [
-            'host' => Settings::get('purl_base_domain'),
-            'absolute' => TRUE,
-            'purl_exit' => TRUE,
-        ]);
+      elseif ($route_name == 'entity.group.canonical') {
+        /** @var \Drupal\group\Entity\Group $group */
+        $group = $this->currentRouteMatch->getParameter('group');
+        $modifier = substr($group->path->alias, 1);
+
       }
+      elseif ($isAdminRoute) {
+        // exit group
+        //$url = Url::fromRoute($route_name, $this->currentRouteMatch->getRawParameters()->all(), [
+       //   'purl_exit' => TRUE,
+      //  ]);
+      }
+
     }
-    if ($route_name == 'entity.group.canonical') {
-      /** @var Group $group */
-      $group = $this->currentRouteMatch->getParameter('group');
-      $modifier = $group->purl->value;
+    //if ($route_name == 'entity.group.canonical') {
+    //  if (empty($matched)) {
+    //    $matched = 1;
+    //  }
+    //  if (empty($matched)) {
 
-      if (strpos($modifier, '.') !== FALSE) {
-        // domain, has a dot
-        $host = $modifier;
-      }
-      else {
-        // path
-        $host = Settings::get('purl_base_domain') . '/' . $modifier;
-      }
-
-      // if not matched...
-      if (empty($matched)) {
-
-        $url = Url::fromRoute($route_name, $this->currentRouteMatch->getRawParameters()
-              ->all(), [
-            'host' => $host,
-            'absolute' => TRUE,
-            'purl_exit' => TRUE,
-        ]);
-      }
-    }
+    //    $url = Url::fromRoute($route_name, $this->currentRouteMatch->getRawParameters()
+    //      ->all(), [
+    //      'host' => $modifier . '.' . Settings::get('purl_base_domain'),
+    //      'absolute' => TRUE,
+    //      'purl_exit' => TRUE,
+    //    ]);
+    //  }
+    //}
     if ($url) {
       try {
         $redirect_response = new TrustedRedirectResponse($url->toString());
@@ -155,8 +166,9 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
         $eventDispatcher->dispatch(PurlEvents::EXITED_CONTEXT, $new_event);
         $event->setResponse($new_event->getResponse());
         return;
-      } catch (RedirectLoopException $e) {
-        Drupal::logger('redirect')->warning($e->getMessage());
+      }
+      catch (RedirectLoopException $e) {
+        \Drupal::logger('redirect')->warning($e->getMessage());
         $response = new Response();
         $response->setStatusCode(503);
         $response->setContent('Service unavailable');

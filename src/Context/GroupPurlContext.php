@@ -3,19 +3,22 @@
 namespace Drupal\group_purl\Context;
 
 use Drupal\Core\Cache\CacheableMetadata;
-use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Path\CurrentPathStack;
 use Drupal\Core\Plugin\Context\Context;
+use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Plugin\Context\ContextProviderInterface;
 use Drupal\Core\Plugin\Context\EntityContext;
-use Drupal\Core\Plugin\Context\EntityContextDefinition;
+use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\group\Entity\Group;
 use Drupal\purl\Event\ModifierMatchedEvent;
 use Drupal\purl\PurlEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Drupal\Core\Entity\EntityTypeManager;
 
 /**
- * Class GroupPurlContext.
+ * Class GroupContext.
  */
 class GroupPurlContext implements ContextProviderInterface, EventSubscriberInterface {
 
@@ -23,20 +26,31 @@ class GroupPurlContext implements ContextProviderInterface, EventSubscriberInter
   /**
    * Drupal\Core\Entity\EntityTypeManager definition.
    *
-   * @var EntityTypeManager
+   * @var \Drupal\Core\Entity\EntityTypeManager
    */
   protected $entityTypeManager;
 
   /**
-   * @var  ModifierMatchedEvent*/
+   * @var CurrentRouteMatch
+   */
+  protected $currentRouteMatch;
+
+  /**
+   * @var  \Drupal\purl\Event\ModifierMatchedEvent*/
   protected $modifierMatched;
 
-  protected $contexts;
   /**
    * Constructs a new GroupContext object.
+   *
+   * @param EntityTypeManagerInterface $entity_type_manager
+   * @param CurrentRouteMatch $currentRouteMatch
+   * @param CurrentPathStack $currentPathStack
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager,
+                              CurrentRouteMatch $currentRouteMatch
+                              ) {
     $this->entityTypeManager = $entity_type_manager;
+    $this->currentRouteMatch = $currentRouteMatch;
   }
 
   /**
@@ -52,12 +66,12 @@ class GroupPurlContext implements ContextProviderInterface, EventSubscriberInter
    * This method is called whenever the purl.modifier_matched event is
    * dispatched.
    *
-   * @param ModifierMatchedEvent $event
+   * @param \Drupal\purl\Event\ModifierMatchedEvent $event
    */
   public function onModifierMatched(ModifierMatchedEvent $event) {
-    //if (!in_array($event->getProvider(), ['group_purl_provider', 'group_purl_subdomain'])) {
+    //if ($event->getProvider() != 'group_purl_provider') {
       // We are not interested in modifiers not provided by this module.
-    //  return;
+      //return;
     //}
     $this->modifierMatched = $event;
     $this->contexts[$event->getMethod()->getId()]  = $event->getModifier();
@@ -66,36 +80,41 @@ class GroupPurlContext implements ContextProviderInterface, EventSubscriberInter
 
   /**
    * {@inheritdoc}
-   *
-   * 3 different ways to get group context:
-   * 1. Purl matched -- we are in a subdomain or subdirectory
-   * 2. entity.group route
-   * 3. entity.*.canonical route, with a purl_context set
    */
   public function getRuntimeContexts(array $unqualified_context_ids) {
-    // Create an optional context definition for group entities.
-    $context_definition = EntityContextDefinition::fromEntityTypeId('group');
-    $context_definition->setRequired(FALSE);
     // Cache this context on the route.
     $cacheability = new CacheableMetadata();
-    // no longer available in group 1.0
-    //$cacheability->setCacheContexts(['group']);
-    $cacheability->setCacheMaxAge(0);
+    $cacheability->setCacheContexts(['purl']);
 
-    // Create a context from the definition and retrieved or created group.
-    $context = new Context($context_definition, $this->getGroupFromRoute());
-    $context->addCacheableDependency($cacheability);
+    $group = $this->getGroupFromRoute();
+    if ($group) {
+      // Create a context from the definition and retrieved or created group.
+      $context = EntityContext::fromEntity($group);
+      $context->addCacheableDependency($cacheability);
 
-    return ['group' => $context];
+      return ['group' => $context];
+    }
+    return [];
   }
 
+  /**
+   * For context, in addition to an active Purl context, we also want to include
+   * the group view page itself.
+   * @return null|\Drupal\group\Entity\Group the active group
+   */
   public function getGroupFromRoute() {
-    if ($this->modifierMatched === NULL) {
-      return;
+    if ($this->modifierMatched !== NULL) {
+      $storage = $this->entityTypeManager->getStorage('group');
+      $group = $storage->load($this->modifierMatched->getValue());
+      return $group;
     }
-    $storage = $this->entityTypeManager->getStorage('group');
-    $group = $storage->load($this->modifierMatched->getValue());
-    return $group;
+    return null;
+    $routename = $this->currentRouteMatch->getRouteName();
+    if (strpos($routename, 'entity.group.') === 0) {
+      $group = $this->currentRouteMatch->getParameter('group');
+      return $group;
+    }
+
   }
 
   /**
@@ -105,6 +124,5 @@ class GroupPurlContext implements ContextProviderInterface, EventSubscriberInter
     $context = EntityContext::fromEntityTypeId('group', $this->t('Group from Purl'));
     return ['group' => $context];
   }
-
 
 }

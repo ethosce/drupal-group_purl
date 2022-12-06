@@ -4,8 +4,8 @@ namespace Drupal\group_purl\PathProcessor;
 
 use Drupal\Core\PathProcessor\OutboundPathProcessorInterface;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\purl\ContextHelper;
 use Drupal\purl\MatchedModifiers;
+use Drupal\purl\ContextHelper;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -16,13 +16,13 @@ class GroupPurlContextOutboundPathProcessor implements OutboundPathProcessorInte
   /**
    * Drupal\purl\MatchedModifiers definition.
    *
-   * @var MatchedModifiers
+   * @var \Drupal\purl\MatchedModifiers
    */
   protected $purlMatchedModifiers;
   /**
    * Drupal\purl\ContextHelper definition.
    *
-   * @var ContextHelper
+   * @var \Drupal\purl\ContextHelper
    */
   protected $purlContextHelper;
   /**
@@ -36,8 +36,8 @@ class GroupPurlContextOutboundPathProcessor implements OutboundPathProcessorInte
   /**
    * @param string $path
    * @param array $options
-   * @param Request|NULL $request
-   * @param BubbleableMetadata|NULL $bubbleable_metadata
+   * @param \Symfony\Component\HttpFoundation\Request|NULL $request
+   * @param \Drupal\Core\Render\BubbleableMetadata|NULL $bubbleable_metadata
    *
    * @return string
    *
@@ -48,10 +48,11 @@ class GroupPurlContextOutboundPathProcessor implements OutboundPathProcessorInte
     if (isset($options['purl_context']) && isset($options['purl_context']['modifier'])) {
       $modifier = $options['purl_context']['modifier'];
       if (strpos($path, '/' . $modifier) === 0) {
-        $out = substr($path, strlen($modifier));
+        $out = substr($path, strlen($modifier) + 1);
         return strlen($out) ? $out : '/';
       }
     }
     return $path;
   }
+
 }

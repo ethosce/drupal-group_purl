@@ -1,9 +1,8 @@
 name: group_purl
 type: module
 description: Purl provider for Group
-core: 8.x
 core_version_requirement: ^8 || ^9
 package: Group
 dependencies:
-  - group
-  - purl
+  - drupal:group
+  - purl:purl

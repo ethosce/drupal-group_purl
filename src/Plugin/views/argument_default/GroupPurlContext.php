@@ -42,7 +42,9 @@ class GroupPurlContext extends ArgumentDefaultPluginBase implements CacheableDep
 
     /** @var \Drupal\Core\Plugin\Context\ContextInterface[] $contexts */
     $contexts = $context_provider->getRuntimeContexts(['group']);
-    $this->group = $contexts['group']->getContextValue();
+    if (!empty($contexts['group'])) {
+      $this->group = $contexts['group']->getContextValue();
+    }
   }
 
   /**

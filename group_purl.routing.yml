@@ -1,0 +1,10 @@
+
+group_purl.group_purl_content_controller_addForm:
+  path: '/content/create/{plugin_id}'
+  defaults:
+    _controller: '\Drupal\group_purl\Controller\GroupPurlContentController::createForm'
+    _title_callback: '\Drupal\group_purl\Controller\GroupPurlContentController::createFormTitle'
+  requirements:
+    _group_purl_content_create_any_entity_access: 'TRUE'
+  options:
+    _access_checks: access_check.group_purl_content.create_any

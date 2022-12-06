@@ -2,7 +2,6 @@
 
 namespace Drupal\group_purl\Plugin\Purl\Provider;
 
-use Drupal\group\Entity\Group;
 use Drupal\purl\Plugin\Purl\Provider\ProviderAbstract;
 use Drupal\purl\Plugin\Purl\Provider\ProviderInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
@@ -24,12 +23,21 @@ class GroupPurlProvider extends ProviderAbstract implements ProviderInterface, C
    * @inheritDoc
    */
   public function getModifierData() {
-    $modifiers = [];
-    $groups = Group::loadMultiple();
+    /** @var \Drupal\Core\Entity\EntityStorageInterface $storage */
+    $storage = $this->container->get('entity_type.manager')->getStorage('group');
+    /** @var \Drupal\Core\Entity\Query\Sql\Query $query */
+    $query = $storage->getQuery();
+    $gids = $query->execute();
+    $alias_manager = $this->container->get('path_alias.manager');
 
-    foreach ($groups as $group) {
-      $modifiers[$group->purl->value] = $group->id();
-    }
+    $modifiers = [];
+
+    foreach ($gids as $gid) {
+      $path = $alias_manager->getAliasByPath('/group/' . $gid);
+      $path = substr($path, 1);
+      $modifiers[$path] = $gid;
+
+    };
 
     return $modifiers;
   }
