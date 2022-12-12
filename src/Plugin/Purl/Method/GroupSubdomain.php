@@ -13,7 +13,6 @@ use Drupal\Core\Site\Settings;
 use Drupal\purl\Plugin\Purl\Method\MethodAbstract;
 use Drupal\purl\Plugin\Purl\Method\OutboundRouteAlteringInterface;
 use Drupal\purl\Plugin\Purl\Method\RequestAlteringInterface;
-use Drupal\purl\Plugin\Purl\Method\SubdomainMethod;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,36 +32,32 @@ class GroupSubdomain extends MethodAbstract implements OutboundRouteAlteringInte
 
   use ContainerAwareTrait;
 
-  public function contains(Request $request, $modifier)
-  {
+  public function contains(Request $request, $modifier) {
     $baseHost = $this->getBaseHost();
 
     if (!$baseHost) {
-      return false;
+      return FALSE;
     }
 
     $host = $request->getHost();
 
     if ($host === $this->getBaseHost()) {
-      return false;
+      return FALSE;
     }
 
     return $this->hostContainsModifier($modifier, $request->getHost());
   }
 
-  protected function hostContainsModifier($modifier, $host)
-  {
+  protected function hostContainsModifier($modifier, $host) {
     return strpos($host, $modifier . '.') === 0;
   }
 
-  protected function getBaseHost()
-  {
+  protected function getBaseHost() {
     // Retrieve this from request context.
     return Settings::get('purl_base_domain');
   }
 
-  protected function getRequestContext()
-  {
+  protected function getRequestContext() {
     return $this->container->get('router.request_context');
   }
 
@@ -80,6 +75,7 @@ class GroupSubdomain extends MethodAbstract implements OutboundRouteAlteringInte
     }
     return strpos($uri, '/' . $modifier . '/') === 0;
   }
+
   /**
    *
    */
@@ -90,7 +86,7 @@ class GroupSubdomain extends MethodAbstract implements OutboundRouteAlteringInte
     $uri = $request->server->get('REQUEST_URI');
     if (strpos($uri, '/' . $identifier) === 0) {
       return FALSE;
-    };
+    }
     if ($uri == '/') {
       $newPath = '/' . $identifier;
       $request->server->set('REQUEST_URI', $newPath);
@@ -106,7 +102,8 @@ class GroupSubdomain extends MethodAbstract implements OutboundRouteAlteringInte
     // first fix up path...
     if (isset($options['host'])) {
       $host = $options['host'];
-    } else {
+    }
+    else {
       $host = $this->getRequestContext()->getHost();
     }
     // Next, bail under certain circumstances
@@ -117,7 +114,7 @@ class GroupSubdomain extends MethodAbstract implements OutboundRouteAlteringInte
     }
     if (isset($options['route'])) {
       if (!empty($options['route']->getOptions()['_admin_route'])) {
-        return null;
+        return NULL;
       }
     }
     // finally, check path and insert group prefix for next request

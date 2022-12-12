@@ -2,22 +2,21 @@
 
 namespace Drupal\group_purl\EventSubscriber;
 
+use Drupal;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Routing\CurrentRouteMatch;
+use Drupal\Core\Routing\NullRouteMatch;
 use Drupal\Core\Routing\TrustedRedirectResponse;
-use Drupal\Core\Site\Settings;
 use Drupal\Core\Url;
 use Drupal\group\Entity\GroupContent;
 use Drupal\purl\Event\ExitedContextEvent;
+use Drupal\purl\MatchedModifiers;
 use Drupal\purl\PurlEvents;
 use Drupal\redirect\Exception\RedirectLoopException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\EventDispatcher\Event;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Routing\CurrentRouteMatch;
-use Drupal\purl\MatchedModifiers;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Drupal\Core\Routing\NullRouteMatch;
 
 /**
  * Class GroupContextRouteSubscriber.
@@ -30,12 +29,14 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManager;
+
   /**
    * Drupal\Core\Routing\CurrentRouteMatch definition.
    *
    * @var \Drupal\Core\Routing\CurrentRouteMatch
    */
   protected $currentRouteMatch;
+
   /**
    * Drupal\purl\MatchedModifiers definition.
    *
@@ -138,8 +139,8 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
       elseif ($isAdminRoute) {
         // exit group
         //$url = Url::fromRoute($route_name, $this->currentRouteMatch->getRawParameters()->all(), [
-       //   'purl_exit' => TRUE,
-      //  ]);
+        //   'purl_exit' => TRUE,
+        //  ]);
       }
 
     }
@@ -166,9 +167,8 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
         $eventDispatcher->dispatch(PurlEvents::EXITED_CONTEXT, $new_event);
         $event->setResponse($new_event->getResponse());
         return;
-      }
-      catch (RedirectLoopException $e) {
-        \Drupal::logger('redirect')->warning($e->getMessage());
+      } catch (RedirectLoopException $e) {
+        Drupal::logger('redirect')->warning($e->getMessage());
         $response = new Response();
         $response->setStatusCode(503);
         $response->setContent('Service unavailable');

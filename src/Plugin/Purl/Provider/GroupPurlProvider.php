@@ -37,7 +37,7 @@ class GroupPurlProvider extends ProviderAbstract implements ProviderInterface, C
       $path = substr($path, 1);
       $modifiers[$path] = $gid;
 
-    };
+    }
 
     return $modifiers;
   }

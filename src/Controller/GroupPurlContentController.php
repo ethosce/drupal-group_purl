@@ -35,9 +35,7 @@ class GroupPurlContentController extends ControllerBase {
    * @param \Drupal\group\Entity\Controller\GroupContentController $controller
    *   GroupContentController instance.
    */
-  public function __construct(
-    GroupPurlContext $context,
-    GroupContentController $controller) {
+  public function __construct(GroupPurlContext $context, GroupContentController $controller) {
     $this->context = $context;
     $this->groupContentController = $controller;
   }

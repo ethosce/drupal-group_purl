@@ -1,13 +1,13 @@
 services:
   group_purl.context_provider:
     class: Drupal\group_purl\Context\GroupPurlContext
-    arguments: ['@entity_type.manager', '@current_route_match']
+    arguments: [ '@entity_type.manager', '@current_route_match' ]
     tags:
       - { name: context_provider }
       - { name: event_subscriber }
   group_purl.group_context_routes:
     class: Drupal\group_purl\EventSubscriber\GroupContextRouteSubscriber
-    arguments: ['@entity_type.manager', '@current_route_match', '@purl.matched_modifiers']
+    arguments: [ '@entity_type.manager', '@current_route_match', '@purl.matched_modifiers' ]
     tags:
       - { name: event_subscriber }
 
@@ -26,6 +26,6 @@ services:
 
   access_check.group_purl_content.create_any:
     class: 'Drupal\group_purl\Access\GroupPurlContentCreateAnyAccessCheck'
-    arguments: ['@group_purl.context_provider','@access_check.group_content.create_any']
+    arguments: [ '@group_purl.context_provider','@access_check.group_content.create_any' ]
     tags:
       - { name: 'access_check', applies_to: '_group_purl_content_create_any_access' }

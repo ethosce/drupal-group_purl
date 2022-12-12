@@ -1,14 +1,16 @@
 {
-  "name": "drupal/group_purl",
-  "type": "drupal-module",
-  "description": "Purl provider for Group",
-  "keywords": ["Drupal"],
-  "license": "GPL-2.0+",
-  "homepage": "https://www.drupal.org/project/group_purl",
-  "minimum-stability": "dev",
-  "support": {
-    "issues": "https://www.drupal.org/project/issues/group_purl",
-    "source": "http://cgit.drupalcode.org/group_purl"
-  },
-  "require": { }
+    "name": "drupal/group_purl",
+    "type": "drupal-module",
+    "description": "Purl provider for Group",
+    "keywords": [
+        "Drupal"
+    ],
+    "license": "GPL-2.0+",
+    "homepage": "https://github.com/ethosce/drupal-group_purl",
+    "minimum-stability": "dev",
+    "support": {
+        "issues": "https://github.com/ethosce/drupal-group_purl/issues",
+        "source": "https://github.com/ethosce/drupal-group_purl"
+    },
+    "require": {}
 }

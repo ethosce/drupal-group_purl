@@ -1,4 +1,3 @@
-
 group_purl.group_purl_content_controller_addForm:
   path: '/content/create/{plugin_id}'
   defaults:

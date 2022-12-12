@@ -27,4 +27,5 @@ class RouteSubscriber extends RouteSubscriberBase {
     //  $route->setPath('/group/{group}/view');
     //}
   }
+
 }

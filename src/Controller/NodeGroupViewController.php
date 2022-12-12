@@ -8,10 +8,10 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\group\Entity\GroupContent;
+use Drupal\group_purl\Context\GroupPurlContext;
 use Drupal\node\Controller\NodeViewController;
 use Drupal\path_alias\AliasManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\group_purl\Context\GroupPurlContext;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
@@ -25,6 +25,7 @@ class NodeGroupViewController extends NodeViewController {
    * @var \Drupal\path_alias\AliasManagerInterface
    */
   protected $aliasManager;
+
   /**
    * Drupal\group_purl\Context\GroupPurlContext definition.
    *
@@ -74,7 +75,7 @@ class NodeGroupViewController extends NodeViewController {
       // no match for this group context. Do we have a group?
       if ($group_content) {
         // Redirect to correct group context.
-        $alias = $this->aliasManager->getAliasByPath('/group/'. $group_content->getGroup()->id());
+        $alias = $this->aliasManager->getAliasByPath('/group/' . $group_content->getGroup()->id());
         return new RedirectResponse($alias . $node->toUrl()->toString());
       }
     }
@@ -90,4 +91,5 @@ class NodeGroupViewController extends NodeViewController {
 
     return parent::view($node, $view_mode, $langcode);
   }
+
 }

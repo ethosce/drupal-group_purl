@@ -3,8 +3,8 @@
 namespace Drupal\group_purl\Access;
 
 use Drupal\Core\Access\AccessResult;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Routing\Access\AccessInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\group\Access\GroupContentCreateAnyAccessCheck;
 use Drupal\group_purl\Context\GroupPurlContext;
 use Symfony\Component\Routing\Route;
@@ -38,10 +38,7 @@ class GroupPurlContentCreateAnyAccessCheck implements AccessInterface {
    * @param \Drupal\group\Access\GroupContentCreateAnyAccessCheck $accessCheck
    *   Access Check.
    */
-  public function __construct(
-    GroupPurlContext $context,
-    GroupContentCreateAnyAccessCheck $accessCheck
-  ) {
+  public function __construct(GroupPurlContext $context, GroupContentCreateAnyAccessCheck $accessCheck) {
     $this->context = $context;
     $this->accessCheck = $accessCheck;
   }
