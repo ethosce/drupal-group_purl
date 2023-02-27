@@ -29,3 +29,9 @@ services:
     arguments: [ '@group_purl.context_provider','@access_check.group_relationship.create_any' ]
     tags:
       - { name: 'access_check', applies_to: '_group_purl_content_create_any_access' }
+
+  access_check.group_purl:
+    class: 'Drupal\group_purl\Access\GroupPurlAccessCheck'
+    arguments: [ '@group_purl.context_provider' ]
+    tags:
+      - { name: 'access_check', applies_to: '_group_purl_permission' }
