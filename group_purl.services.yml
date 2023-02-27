@@ -26,6 +26,6 @@ services:
 
   access_check.group_purl_content.create_any:
     class: 'Drupal\group_purl\Access\GroupPurlContentCreateAnyAccessCheck'
-    arguments: [ '@group_purl.context_provider','@access_check.group_content.create_any' ]
+    arguments: [ '@group_purl.context_provider','@access_check.group_relationship.create_any' ]
     tags:
       - { name: 'access_check', applies_to: '_group_purl_content_create_any_access' }

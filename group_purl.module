@@ -16,15 +16,16 @@ use Drupal\Core\Site\Settings;
  * @param EntityInterface $entity
  */
 function group_purl_entity_insert(Drupal\Core\Entity\EntityInterface $entity) {
-  if (Drupal::routeMatch()->getRouteName() != 'entity.group_content.create_form') {
+  if (Drupal::routeMatch()->getRouteName() != 'entity.group_relationship.create_form') {
     if ($entity->getEntityTypeId() == "node") {
       $context = Drupal::service('group_purl.context_provider');
       $contexts = $context->getRuntimeContexts(['group']);
       if (!empty($contexts['group'])) {
+        /** @var Drupal\group\Entity\Group $group */
         $group = $contexts['group']->getContextValue();
         $etype = $entity->getType();
-        if ($group->getGroupType()->hasContentPlugin('group_node:' . $etype)) {
-          $group->addContent($entity, 'group_node:' . $etype);
+        if ($group->getGroupType()->hasPlugin('group_node:' . $etype)) {
+          $group->addRelationship($entity, 'group_node:' . $etype);
         }
       }
     }

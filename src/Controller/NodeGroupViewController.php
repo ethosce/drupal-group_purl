@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\group\Entity\GroupContent;
+use Drupal\group\Entity\GroupRelationship;
 use Drupal\group_purl\Context\GroupPurlContext;
 use Drupal\node\Controller\NodeViewController;
 use Drupal\path_alias\AliasManagerInterface;
@@ -64,7 +65,7 @@ class NodeGroupViewController extends NodeViewController {
    */
   public function view(EntityInterface $node, $view_mode = 'full', $langcode = NULL) {
     $group_context = $this->groupPurlContextProvider->getGroupFromRoute();
-    $group_contents = GroupContent::loadByEntity($node);
+    $group_contents = GroupRelationship::loadByEntity($node);
     if ($group_context) {
       // Check to see if we're in a valid group context for this node.
       foreach ($group_contents as $group_content) {

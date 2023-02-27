@@ -91,7 +91,14 @@ class GroupContextRouteSubscriber implements EventSubscriberInterface {
 
     if (empty($matched)) {
       if ($route_name == 'entity.node.canonical' || $route_name == 'entity.node.edit_form' || $route_name == 'entity.node.add') {
-        if ($contents = GroupContent::loadByEntity($this->currentRouteMatch->getParameter('node'))) {
+        /* @kludge temporary fix for test failure, there's no node in the URL?
+         *
+         * Argument 1 passed to
+         * Drupal\group\Entity\GroupContent::loadByEntity() must implement
+         * interface Drupal\Core\Entity\ContentEntityInterface, null given()
+         */
+        $node = $this->currentRouteMatch->getParameter('node');
+        if ($node && $contents = GroupContent::loadByEntity($node)) {
           $group_content = reset($contents);
           $modifier = substr($group_content->getGroup()->path->alias, 1);
           $url = Url::fromRoute($route_name, $this->currentRouteMatch->getRawParameters()
